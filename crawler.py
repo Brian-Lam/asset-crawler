@@ -13,7 +13,7 @@
 import re, urllib
 from urlparse import urlparse
 from collections import defaultdict
-from os.path import splitext, basename
+from os.path import basename
 
 textfile = file('crawler_results.txt','wt')
 crawl_domain = "http://www.alexanderinteractive.com"
@@ -58,8 +58,9 @@ def crawl(_page):
 	    	continue
 
 	    if ".css" in link or ".js" in link:
+	    	# The same file might be handled by different subdomains on a CDN
+	    	# Only track by filename
 	    	disassembled = urlparse(str(link))
-	    	filename, file_ext = splitext(basename(disassembled.path))
         	asset_track[basename(disassembled.path)].append(_page)
 	    # Crawl the links within this given _page
 	    try: 

@@ -18,63 +18,62 @@ crawl_domain = "http://www.alexanderinteractive.com"
 
 crawled_pages = []
 crawl_count = 0
-max_crawl_count = 0
+max_crawl_count = 50
 
 asset_track = defaultdict(list)
 
-def crawl(_url):
+def crawl(_page):
 	global crawled_pages
 	global crawl_count
 	global max_crawl_count
 
 	# Do not crawl external domains
-	if not crawl_domain in _url: 
-		print ("Skipping URL " + _url)
+	if not crawl_domain in _page: 
+		print ("Skipping URL " + _page)
 		return
 
 	#Skip this page if it has already been crawled
-	if _url in crawled_pages:
+	if _page in crawled_pages:
 		return
 	else:
-		crawled_pages.append(_url)
-		print ("Crawling " + _url)
+		crawled_pages.append(_page)
+		print ("Crawling " + _page)
 
+	print ("(" + str(crawl_count) + "/" + str(max_crawl_count) + ")")
 	crawl_count += 1
 	if (crawl_count > max_crawl_count):
-		return	
+		raise ValueError('Crawl limit has been reached')
 
-	for link in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(_url).read(), re.I):
-	    
-	    print "  - Found " + link
+	for link in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(_page).read(), re.I):
 
 	    # Format URL
 	    link = formaturl(link)
+	    
+	    print "  - Found " + link
 
 	    #Skip telephone links, should replace this with a regex later
 	    if "tel:" in link:
 	    	continue
 
-	    # Crawl the links within this given _url
+	    # Crawl the links within this given _page
 	    try: 
 		    for ee in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(link).read(), re.I):
 		    	ee = formaturl(ee)
 		        if ".css" in ee or ".js" in ee:
 		        	asset_track[ee].append(link)
-		        if crawl_domain in ee:
-			        crawl(ee)
+		        # if crawl_domain in ee:
+			       #  crawl(ee)
 	    except IOError as e:
 			print ("IOError on " + link)
 			continue
-	    except Exception:
+	    except ValueError as err:
+			if (err.args == "Crawl limit has been reached"):
+				raise ValueError(err.args)
+	    except Exception as e:
 			print "Other error"
 			continue
 
-	for asset, refs in asset_track.iteritems():
-		textfile.write(asset + " : " + len(refs) + " references")
-		for ref in refs:
-			textfile.write("  - " + ref + "\n")
-
-	textfile.close()
+	makereport()
 	print("Results written to crawl_results.txt")
 
 
@@ -85,8 +84,22 @@ def formaturl(_url):
 	    	_url = str(crawl_domain + _url)
     return _url.strip()
 
+def makereport():
+	for asset, refs in asset_track.iteritems():
+		# Put in a set to take out duplicates, TODO implement better fix
+		refs_set = set(refs)
+		textfile.write(asset + " : " + str(len(refs_set)) + " references" + "\n")
+		for ref in refs_set:
+			textfile.write("  - " + ref + "\n")
+
+	textfile.close()
+
 if __name__ == "__main__":
-    crawl(crawl_domain)
+	try: 
+	    crawl(crawl_domain)
+	except ValueError as err: 
+		print(err.args)
+		makereport()
 
 """
 TODO

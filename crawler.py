@@ -1,15 +1,3 @@
-"""
-	Asset crawler
-	Author: Brian Lam
-
-	This will crawl a website and report how often a .js or .css file is
-	used, and what pages it's used on. Developed while interning at 
-	Alexander Interactive. 
-
-	Initial templating:
-	http://null-byte.wonderhowto.com/inspiration/basic-website-crawler-python-12-lines-code-0132785/
-"""
-
 import re, urllib
 from urlparse import urlparse
 from collections import defaultdict

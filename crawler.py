@@ -55,14 +55,11 @@ def crawl(_page):
 	    if "tel:" in link:
 	    	continue
 
+	    if ".css" in link or ".js" in link:
+        	asset_track[link].append(_page)
 	    # Crawl the links within this given _page
 	    try: 
-		    for ee in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(link).read(), re.I):
-		    	ee = formaturl(ee)
-		        if ".css" in ee or ".js" in ee:
-		        	asset_track[ee].append(link)
-		        # if crawl_domain in ee:
-			       #  crawl(ee)
+	       crawl(link)
 	    except IOError as e:
 			print ("IOError on " + link)
 			continue
@@ -82,6 +79,8 @@ def formaturl(_url):
     if not crawl_domain in _url:
     	if not "http://" in _url and not "https://" in _url:
 	    	_url = str(crawl_domain + _url)
+	if _url.endswith("/"):
+		_url = _url[:-1]
     return _url.strip()
 
 def makereport():
@@ -92,14 +91,14 @@ def makereport():
 		for ref in refs_set:
 			textfile.write("  - " + ref + "\n")
 
-	textfile.close()
-
 if __name__ == "__main__":
 	try: 
 	    crawl(crawl_domain)
 	except ValueError as err: 
 		print(err.args)
 		makereport()
+	textfile.close()
+	
 
 """
 TODO

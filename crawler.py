@@ -15,12 +15,12 @@ from urlparse import urlparse
 from collections import defaultdict
 from os.path import basename
 
-textfile = file('crawler_results.txt','wt')
+textfile = file('results_crawler.txt','wt')
 crawl_domain = "http://www.alexanderinteractive.com"
 
 crawled_pages = []
 crawl_count = 0
-max_crawl_count = 50
+max_crawl_count = 100
 
 asset_track = defaultdict(list)
 
@@ -75,8 +75,6 @@ def crawl(_page):
 			print "Other error"
 			continue
 
-	makereport()
-	print("Results written to crawl_results.txt")
 
 
 def formaturl(_url):
@@ -95,13 +93,14 @@ def makereport():
 		textfile.write(asset + " : " + str(len(refs_set)) + " references" + "\n")
 		for ref in refs_set:
 			textfile.write("  - " + ref + "\n")
+	print "Reported generated to results_crawl.txt"
 
 if __name__ == "__main__":
 	try: 
 	    crawl(crawl_domain)
 	except ValueError as err: 
 		print(err.args)
-		makereport()
+	makereport()
 	textfile.close()
 
 

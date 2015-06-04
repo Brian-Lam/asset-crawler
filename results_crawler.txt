@@ -1,11 +1,14 @@
-style-experience.css : 1 references
-  - http://www.brianlam.us/experience.html
-style-projects.css : 1 references
-  - http://www.brianlam.us/projects.html
-style-main.css : 2 references
-  - http://www.brianlam.us/index.html
-  - http://www.brianlam.us/
-style-about.css : 1 references
-  - http://www.brianlam.us/about.html
-style-contact.css : 1 references
-  - http://www.brianlam.us/contact.html
+styles.css : 6 references
+  - http://www.brianyan.com/#about-me
+  - http://www.brianyan.com/
+  - http://www.brianyan.com/#Education
+  - http://www.brianyan.com/#intro
+  - http://www.brianyan.com/#Contact-Me
+  - http://www.brianyan.com/#Projects
+bootstrap.min.css : 6 references
+  - http://www.brianyan.com/#about-me
+  - http://www.brianyan.com/
+  - http://www.brianyan.com/#Education
+  - http://www.brianyan.com/#intro
+  - http://www.brianyan.com/#Contact-Me
+  - http://www.brianyan.com/#Projects

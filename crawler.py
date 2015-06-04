@@ -4,9 +4,9 @@ from collections import defaultdict
 from os.path import basename
 
 textfile = file('results_crawler.txt','wt')
-# crawl_domain must have trailing slash
-# TODO: ^ lol fix that
-crawl_domain = "http://www.brianlam.us/"
+
+crawl_domain = "http://www.brianyan.com/"
+crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl_domain
 
 crawled_pages = []
 crawl_count = 0

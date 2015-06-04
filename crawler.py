@@ -16,7 +16,9 @@ from collections import defaultdict
 from os.path import basename
 
 textfile = file('results_crawler.txt','wt')
-crawl_domain = "http://www.alexanderinteractive.com"
+# crawl_domain must have trailing slash
+# TODO: ^ lol fix that
+crawl_domain = "http://www.brianlam.us/"
 
 crawled_pages = []
 crawl_count = 0
@@ -79,11 +81,11 @@ def crawl(_page):
 
 def formaturl(_url):
     #Append domain to beginning of URL if it isn't already there
+    if _url.endswith("/"):
+		_url = _url[:-1]
     if not crawl_domain in _url:
     	if not "http://" in _url and not "https://" in _url:
 	    	_url = str(crawl_domain + _url)
-	if _url.endswith("/"):
-		_url = _url[:-1]
     return _url.strip()
 
 def makereport():

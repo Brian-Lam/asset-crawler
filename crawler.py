@@ -17,43 +17,72 @@ textfile = file('crawler_results.txt','wt')
 crawl_domain = "http://www.alexanderinteractive.com"
 
 crawled_pages = []
+crawl_count = 0
+max_crawl_count = 0
+
 asset_track = defaultdict(list)
 
 def crawl(_url):
+	global crawled_pages
+	global crawl_count
+	global max_crawl_count
+
+	# Do not crawl external domains
 	if not crawl_domain in _url: 
+		print ("Skipping URL " + _url)
 		return
+
+	#Skip this page if it has already been crawled
 	if _url in crawled_pages:
 		return
 	else:
 		crawled_pages.append(_url)
+		print ("Crawling " + _url)
 
-	for i in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(_url).read(), re.I):
-	    print "Crawling " + i
+	crawl_count += 1
+	if (crawl_count > max_crawl_count):
+		return	
 
-	    #format
-	    i = formaturl(i)
+	for link in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(_url).read(), re.I):
+	    
+	    print "  - Found " + link
 
-	    #Skip telephones, should replace this with a regex later
-	    if "tel:" in i:
+	    # Format URL
+	    link = formaturl(link)
+
+	    #Skip telephone links, should replace this with a regex later
+	    if "tel:" in link:
 	    	continue
 
-	    for ee in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(i).read(), re.I):
-	    	ee = formaturl(ee)
-	        if ".css" in ee or ".js" in ee:
-	        	asset_track[ee].append(i)
-	        if crawl_domain in ee:
-	        	print "Will crawl" + ee
-		        crawl(ee)
+	    # Crawl the links within this given _url
+	    try: 
+		    for ee in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(link).read(), re.I):
+		    	ee = formaturl(ee)
+		        if ".css" in ee or ".js" in ee:
+		        	asset_track[ee].append(link)
+		        if crawl_domain in ee:
+			        crawl(ee)
+	    except IOError as e:
+			print ("IOError on " + link)
+			continue
+	    except Exception:
+			print "Other error"
+			continue
 
 	for asset, refs in asset_track.iteritems():
-		print asset
+		textfile.write(asset + " : " + len(refs) + " references")
 		for ref in refs:
-			print "  - " + ref
+			textfile.write("  - " + ref + "\n")
+
+	textfile.close()
+	print("Results written to crawl_results.txt")
+
 
 def formaturl(_url):
     #Append domain to beginning of URL if it isn't already there
     if not crawl_domain in _url:
-    	_url = str(crawl_domain + _url)
+    	if not "http://" in _url and not "https://" in _url:
+	    	_url = str(crawl_domain + _url)
     return _url.strip()
 
 if __name__ == "__main__":

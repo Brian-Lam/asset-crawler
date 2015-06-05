@@ -12,7 +12,7 @@ crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl
 
 crawled_pages = []
 crawl_count = 0
-max_crawl_count = 100
+max_crawl_count = 3500
 verbose = False
 
 asset_track = defaultdict(list)

@@ -7,12 +7,12 @@ from bs4 import BeautifulSoup, SoupStrainer
 
 textfile = file('results_crawler.txt','wt')
 
-crawl_domain = "http://www.brianlam.us/"
+crawl_domain = "http://www.alexanderinteractive.com/"
 crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl_domain
 
 crawled_pages = []
 crawl_count = 0
-max_crawl_count = 3500
+max_crawl_count = 250
 verbose = False
 
 asset_track = defaultdict(list)
@@ -94,28 +94,23 @@ def makereport():
                 textfile.write("  - " + ref + "\n")
     print "Reported generated to results_crawl.txt"
 
-global crawl_domain
-if __name__ == "__main__":
+def init():
+    global crawl_domain
     # Command line arguments not 100% working yet
     if len(sys.argv) > 2:
         crawl_domain = sys.argv[1]
     if len(sys.argv) > 3:
         if sys.argv[2] == "-V":
             verbose = True
+
     print ("Crawling domain " + crawl_domain)
 
+
+if __name__ == "__main__":
+    init()
     try: 
         crawl(crawl_domain)
     except ValueError as err: 
         print(err.args)
     makereport()
     textfile.close()
-
-
-"""
-TODO
-    Custom grouping (/blogs directory)
-    Regex for telephone, css, and js
-    Only crawl on specified domain
-    Call this recursively for a multi-level call
-"""

@@ -3,11 +3,11 @@ import sys
 from urlparse import urlparse
 from collections import defaultdict
 from os.path import basename
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 
 textfile = file('results_crawler.txt','wt')
 
-crawl_domain = "http://www.alexanderinteractive.com/"
+crawl_domain = "http://www.brianlam.us/"
 crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl_domain
 
 crawled_pages = []
@@ -41,43 +41,39 @@ def crawl(_page):
     # Get JS references
     page_open = urllib.urlopen(_page)
     soup = BeautifulSoup(page_open.read())
+
+    # JS Files
     sources = soup.findAll('script', {"src": True})
     for source in sources:
         disassembled = urlparse(str(source["src"]))
-        print ("  - Found JS file: " + str(disassembled))
-        asset_track[basename(disassembled.path)].append(_page)
+        filename = basename(disassembled.path)
+        print ("  - Found JS file: " + filename)
+        asset_track[filename].append(_page)
 
-    # This will take care of hrefs (CSS and html page references)
-    for link in re.findall('''href=["'](.[^"']+)["']''', urllib.urlopen(_page).read(), re.I):
-        # Format URL
-        link = formaturl(link)
-        
-        print "  - Found " + link
+    # CSS Files
+    css_files = soup.findAll("link", {"rel": "stylesheet"})
+    for css_file in css_files:
+        disassembled = urlparse(str(css_file["href"]))
+        filename = basename(disassembled.path)
+        print ("  - Found CSS file: " + filename)
+        asset_track[filename].append(_page)
 
-        #Skip telephone links, should replace this with a regex later
-        if "tel:" in link:
+    # Links
+    for link in soup.findAll('a'):
+        link_url = formaturl(link["href"])
+        if not link_url in crawled_pages and link_url.startswith(crawl_domain):
+            print "  - Found new link: " + link_url
+        try:
+            crawl(link_url)
+        except IOError as e:
+            print ("IOError on " + link_url)
             continue
-
-        if ".css" in link:
-            # The same file might be handled by different subdomains on a CDN
-            # Only track by filename
-            disassembled = urlparse(str(link))
-            asset_track[basename(disassembled.path)].append(_page)
-        # Crawl the links within this given _page
-        else:
-            try: 
-                   crawl(link)
-            except IOError as e:
-                print ("IOError on " + link)
-                continue
-            except ValueError as err:
-                if (err.args == "Crawl limit has been reached"):
-                    raise ValueError(err.args)
-            except Exception as e:
-                print "Other error"
-                continue
-
-
+        except ValueError as err:
+            if (err.args == "Crawl limit has been reached"):
+                raise ValueError(err.args)
+        except Exception as e:
+            print "Other error"
+            continue      
 
 def formaturl(_url):
     #Append domain to beginning of URL if it isn't already there

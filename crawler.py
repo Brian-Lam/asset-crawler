@@ -7,8 +7,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 
 textfile = file('results_crawler.txt','wt')
 
-crawl_domain = "http://www.alexanderinteractive.com/"
-crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl_domain
+crawl_domain = "http://www.brianlam.us/"
 
 crawled_pages = []
 crawl_count = 0
@@ -96,10 +95,17 @@ def makereport():
 
 def init():
     global crawl_domain
-    # Command line arguments not 100% working yet
-    if len(sys.argv) > 2:
+    if len(sys.argv) == 1:
+        print "Usage:"
+        print "python crawler.py (url) [-v]"
+        print "Options: -v for verbose report"
+        print "Example: python crawler.py https://www.brianlam.us"
+        print ""
+        raise ValueError ("Incorrect usage")
+    if len(sys.argv) > 1:
         crawl_domain = sys.argv[1]
-    if len(sys.argv) > 3:
+        crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl_domain
+    if len(sys.argv) > 2:
         if sys.argv[2] == "-V":
             verbose = True
 

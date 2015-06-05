@@ -1,4 +1,5 @@
 import re, urllib
+import sys
 from urlparse import urlparse
 from collections import defaultdict
 from os.path import basename
@@ -11,7 +12,8 @@ crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl
 
 crawled_pages = []
 crawl_count = 0
-max_crawl_count = 100
+max_crawl_count = 3500
+verbose = False
 
 asset_track = defaultdict(list)
 
@@ -22,7 +24,6 @@ def crawl(_page):
 
     # Do not crawl external domains
     if not crawl_domain in _page: 
-        print ("Skipping URL " + _page)
         return
 
     #Skip this page if it has already been crawled
@@ -63,7 +64,7 @@ def crawl(_page):
             disassembled = urlparse(str(link))
             asset_track[basename(disassembled.path)].append(_page)
         # Crawl the links within this given _page
-        if not ".css" in link:
+        else:
             try: 
                    crawl(link)
             except IOError as e:
@@ -92,11 +93,20 @@ def makereport():
         # Put in a set to take out duplicates, TODO implement better fix
         refs_set = set(refs)
         textfile.write(asset + " : " + str(len(refs_set)) + " references" + "\n")
-        for ref in refs_set:
-            textfile.write("  - " + ref + "\n")
+        if verbose:
+            for ref in refs_set:
+                textfile.write("  - " + ref + "\n")
     print "Reported generated to results_crawl.txt"
 
 if __name__ == "__main__":
+    global crawl_domain
+    if len(sys.argv) > 2:
+        crawl_domain = sys.argv[1]
+    if len(sys.argv) > 3:
+        if sys.argv[2] == "-V":
+            verbose = True
+    print ("Crawling domain " + crawl_domain)
+
     try: 
         crawl(crawl_domain)
     except ValueError as err: 

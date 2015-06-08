@@ -6,12 +6,14 @@ from os.path import basename
 from bs4 import BeautifulSoup, SoupStrainer
 
 textfile = file('results_crawler.txt','wt')
+sites_crawled = file('sites_crawled.txt','wt')
+
 
 crawl_domain = "http://www.brianlam.us/"
 
 crawled_pages = []
 crawl_count = 0
-max_crawl_count = 250
+max_crawl_count = 4500
 verbose = False
 
 asset_track = defaultdict(list)
@@ -31,6 +33,7 @@ def crawl(_page):
     else:
         crawled_pages.append(_page)
         print ("Crawling " + _page)
+        sites_crawled.write(_page + "\n")
 
     print ("(" + str(crawl_count) + "/" + str(max_crawl_count) + ")")
     crawl_count += 1
@@ -68,6 +71,7 @@ def crawl(_page):
             print ("IOError on " + link_url)
             continue
         except ValueError as err:
+            # Throw error this up a few levels
             if (err.args == "Crawl limit has been reached"):
                 raise ValueError(err.args)
         except Exception as e:
@@ -92,6 +96,10 @@ def makereport():
             for ref in refs_set:
                 textfile.write("  - " + ref + "\n")
     print "Reported generated to results_crawl.txt"
+    print "Sites crawled listed on sites_crawled.txt"
+    textfile.close()
+    sites_crawled.close()
+
 
 def init():
     global crawl_domain
@@ -119,4 +127,3 @@ if __name__ == "__main__":
     except ValueError as err: 
         print(err.args)
     makereport()
-    textfile.close()

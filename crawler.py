@@ -1,5 +1,6 @@
 import re, urllib
 import sys
+import os
 from urlparse import urlparse
 from collections import defaultdict
 from os.path import basename
@@ -10,10 +11,13 @@ sites_crawled = file('sites_crawled.txt','wt')
 
 
 crawl_domain = "http://www.brianlam.us/"
+local_assets_paths = ["/Users/blam/ai-www/static/css", "/Users/blam/ai-www/static/js"]
+
 
 crawled_pages = []
+local_assets = []
 crawl_count = 0
-max_crawl_count = 4500
+max_crawl_count = 2500
 verbose = False
 
 asset_track = defaultdict(list)
@@ -85,16 +89,21 @@ def formaturl(_url):
     if not crawl_domain in _url:
         if not "http://" in _url and not "https://" in _url:
             _url = str(crawl_domain + _url)
+            # Fix any double slashes
+            _url = _url.replace("//", "/")
     return _url.strip()
 
 def makereport():
     for asset, refs in asset_track.iteritems():
         # Put in a set to take out duplicates, TODO implement better fix
         refs_set = set(refs)
-        textfile.write(asset + " : " + str(len(refs_set)) + " references" + "\n")
+        textfile.write(asset + ": " + str(len(refs_set)) + " references \n")
         if verbose:
             for ref in refs_set:
                 textfile.write("  - " + ref + "\n")
+
+    find_unused_local_files()
+
     print "Reported generated to results_crawl.txt"
     print "Sites crawled listed on sites_crawled.txt"
     textfile.close()
@@ -120,7 +129,25 @@ def init():
     print ("Crawling domain " + crawl_domain)
 
 
+def find_local_files():
+    for path in local_assets_paths:
+        for root, subFolders, files in os.walk(path):
+            for _file in files:
+                if not _file.startswith("."):
+                    local_assets.append(_file)
+
+def find_unused_local_files():
+    print " ********************* "
+    print " *** Unused Assets *** "
+    print " ********************* "
+
+    for asset in local_assets:
+        if len(asset_track[asset]) == 0:
+            textfile.write(str(asset) + " is not used. \n")
+
 if __name__ == "__main__":
+    find_local_files()
+
     init()
     try: 
         crawl(crawl_domain)

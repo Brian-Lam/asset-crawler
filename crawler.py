@@ -5,19 +5,31 @@ from collections import defaultdict
 from os.path import basename
 from bs4 import BeautifulSoup, SoupStrainer
 
+# Results of the crawler. This file will list the number of times an asset is used
 textfile = file('results_crawler.txt','wt')
+
+# This outputs a list of the sites that were crawled
 sites_crawled = file('sites_crawled.txt','wt')
 
+# The domain to be crawled. Will be provided as a parameter
+crawl_domain = ""
 
-crawl_domain = "http://www.brianlam.us/"
-
+#Keep track of the pages that are crawled so we don't crawl the same page twice
 crawled_pages = []
+
+# Keep track of how many crawls we've made
 crawl_count = 0
-max_crawl_count = 4500
+
+# The max number of times to crawl. Should be provided as a parameter
+max_crawl_count = 10
+
+# If true (provided a parameter), this will output the list of sites crawled
 verbose = False
 
+# The dictionary that keeps track of the number of times an asset appears
 asset_track = defaultdict(list)
 
+# Crawls the domain and keeps track of asset counts.
 def crawl(_page):
     global crawled_pages
     global crawl_count
@@ -32,13 +44,16 @@ def crawl(_page):
         return
     else:
         crawled_pages.append(_page)
-        print ("Crawling " + _page)
-        sites_crawled.write(_page + "\n")
+        
 
-    print ("(" + str(crawl_count) + "/" + str(max_crawl_count) + ")")
     crawl_count += 1
     if (crawl_count > max_crawl_count):
         raise ValueError('Crawl limit has been reached')
+    else:
+        print ("Crawling " + _page)
+        sites_crawled.write(_page + "\n") 
+        print ("(" + str(crawl_count) + "/" + str(max_crawl_count) + ")")
+
 
     # Get JS references
     page_open = urllib.urlopen(_page)
@@ -71,13 +86,10 @@ def crawl(_page):
             print ("IOError on " + link_url)
             continue
         except ValueError as err:
-            # Throw error this up a few levels
-            if (err.args == "Crawl limit has been reached"):
-                raise ValueError(err.args)
-        except Exception as e:
             print "Other error"
-            continue      
+            continue 
 
+# Format the URL so that BS4 can resolve it properly.  
 def formaturl(_url):
     #Append domain to beginning of URL if it isn't already there
     if _url.endswith("/"):
@@ -87,6 +99,8 @@ def formaturl(_url):
             _url = str(crawl_domain + _url)
     return _url.strip()
 
+# Called after crawling has completed. This will output the results
+# of the crawl into a file. 
 def makereport():
     for asset, refs in asset_track.iteritems():
         # Put in a set to take out duplicates, TODO implement better fix
@@ -100,12 +114,13 @@ def makereport():
     textfile.close()
     sites_crawled.close()
 
-
+# Parse the command line arguments to determine script behavior
 def init():
     global crawl_domain
+    global max_crawl_count
     if len(sys.argv) == 1:
         print "Usage:"
-        print "python crawler.py (url) [-v]"
+        print "python crawler.py (url) (max-crawl) [-V]"
         print "Options: -v for verbose report"
         print "Example: python crawler.py https://www.brianlam.us"
         print ""
@@ -114,12 +129,15 @@ def init():
         crawl_domain = sys.argv[1]
         crawl_domain = (crawl_domain + "/") if not crawl_domain.endswith("/") else crawl_domain
     if len(sys.argv) > 2:
-        if sys.argv[2] == "-V":
+        if sys.argv[2] != "-V" and sys.argv[2] != "-v":
+            max_crawl_count = sys.argv[2];
+    if len(sys.argv) > 3:
+        if sys.argv[3] == "-V" and sys.argv[3] == "-v":
             verbose = True
 
     print ("Crawling domain " + crawl_domain)
 
-
+# Script entry function
 if __name__ == "__main__":
     init()
     try: 
